@@ -123,6 +123,12 @@
     background: var(--gradient-peacock);
   }
   
+  /* Subtle grid overlay used on home page stats section */
+  .subtle-grid-overlay {
+    background-image: radial-gradient(#000 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  
   /* Animation Classes */
   .animate-float {
     animation: float 6s ease-in-out infinite;

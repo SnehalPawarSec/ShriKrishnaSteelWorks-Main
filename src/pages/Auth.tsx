@@ -12,7 +12,7 @@ import {
   isSignInWithEmailLink,
   signInWithEmailLink,
 } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { auth, db, googleProvider } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -55,7 +55,7 @@ const Auth = () => {
         .then(async (result) => {
           window.localStorage.removeItem('emailForSignIn');
           await upsertUserInFirestore(result.user, result.user.email);
-          handleLoginSuccess(result.user, result.user.email);
+          await handleLoginSuccess(result.user);
         })
         .catch((err) => {
           console.error(err);
@@ -69,11 +69,39 @@ const Auth = () => {
 
   /* ================= FIRESTORE USER UPSERT ================= */
   const upsertUserInFirestore = async (user: any, name?: string | null) => {
+    const userRef = doc(db, 'users', user.uid);
+
+    // Read existing record so we don't accidentally overwrite a good name with the email
+    let existingName: string | null = null;
+    try {
+      const existingSnap = await getDoc(userRef);
+      if (existingSnap.exists()) {
+        const data = existingSnap.data() as { name?: string | null };
+        if (data?.name) {
+          existingName = data.name;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to read existing user profile from Firestore:', err);
+    }
+
+    // Prefer, in order:
+    // 1. An explicit name passed in (from signup "Full name" field)
+    // 2. An existing stored name in Firestore
+    // 3. Firebase displayName
+    // 4. Email as last resort
+    const finalName =
+      name ||
+      existingName ||
+      user.displayName ||
+      user.email ||
+      null;
+
     await setDoc(
-      doc(db, 'users', user.uid),
+      userRef,
       {
         uid: user.uid,
-        name: name || user.displayName || null,
+        name: finalName,
         email: user.email,
         photoURL: user.photoURL || null,
         lastSeen: serverTimestamp(),
@@ -83,19 +111,39 @@ const Auth = () => {
   };
 
   /* ================= SUCCESS HANDLER ================= */
-  const handleLoginSuccess = (user: any, name?: string | null) => {
+  const handleLoginSuccess = async (user: any) => {
     // Check if it's admin
     const ADMIN_EMAIL = '123soham4049@sjcem.edu.in';
     const isAdmin = user.email === ADMIN_EMAIL;
+
+    // Try to get a friendly display name from Firestore first
+    let displayName: string | null = user.displayName || null;
+
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data() as { name?: string | null };
+        if (data?.name) {
+          displayName = data.name;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch user profile from Firestore:', err);
+    }
+
+    // Fallback: derive a simple name from email if nothing else is available
+    if (!displayName && user.email) {
+      displayName = user.email.split('@')[0];
+    }
 
     localStorage.setItem(
       'user',
       JSON.stringify({
         uid: user.uid,
-        displayName: name,
+        displayName,
         email: user.email,
         photoURL: user.photoURL || null,
-        isAdmin: isAdmin,
+        isAdmin,
       })
     );
 
@@ -115,7 +163,7 @@ const Auth = () => {
       const result = await signInWithPopup(auth, googleProvider || new GoogleAuthProvider());
       const user = result.user;
       await upsertUserInFirestore(user, user.displayName || user.email);
-      handleLoginSuccess(user, user.displayName || user.email);
+      await handleLoginSuccess(user);
     } catch (err: any) {
       console.error(err);
       toast({ title: 'Google sign-in failed', description: err?.message });
@@ -203,7 +251,7 @@ const Auth = () => {
         return;
       }
       await upsertUserInFirestore(cred.user, cred.user.displayName || cred.user.email);
-      handleLoginSuccess(cred.user, cred.user.displayName || cred.user.email);
+      await handleLoginSuccess(cred.user);
     } catch (err: any) {
       console.error(err);
       toast({ title: 'Login failed', description: err?.message });

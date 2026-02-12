@@ -34,11 +34,11 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="space-y-3 border-t border-gray-700 pt-4">
           <Button
             variant="outline"
-            className="w-full justify-start text-white hover:bg-gray-800"
+            className="w-full justify-start bg-white text-gray-900 hover:bg-gray-100"
             onClick={() => navigate("/")}
           >
-            <Home className="w-4 h-4 mr-2" />
-            Back to Home
+            <Home className="w-4 h-4 mr-2 text-gray-900" />
+            <span className="text-gray-900">Back to Home</span>
           </Button>
           <Button
             variant="destructive"

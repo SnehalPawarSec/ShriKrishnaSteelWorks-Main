@@ -97,8 +97,7 @@ const Index = () => {
       {/* ================= TRUST METRICS ================= */}
       <section className="py-32 bg-slate-50 relative overflow-hidden">
         {/* Subtle Grid Pattern Overlay */}
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none" 
-             style={{ backgroundImage: `radial-gradient(#000 1px, transparent 1px)`, backgroundSize: '32px 32px' }}></div>
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none subtle-grid-overlay"></div>
         
         <motion.div 
           variants={staggerContainer}
@@ -185,7 +184,7 @@ const Index = () => {
           viewport={{ once: true }}
           className="max-w-7xl mx-auto overflow-hidden rounded-[3rem] shadow-2xl relative"
         >
-          <div className="peacock-gradient p-12 md:p-24 text-white text-center relative z-10 border border-white/10">
+          <div className="hero-gradient p-12 md:p-24 text-white text-center relative z-10 border border-white/10">
             <h2 className="text-5xl md:text-7xl font-black mb-8 tracking-tighter leading-tight">
               Ready to start your <br /> next big project?
             </h2>

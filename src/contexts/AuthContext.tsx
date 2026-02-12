@@ -25,10 +25,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
       if (authUser) {
-        // Check if admin from localStorage
-        const storedUser = localStorage.getItem('user');
-        const isAdmin = storedUser ? JSON.parse(storedUser).isAdmin : false;
-        setUser({ ...authUser, isAdmin });
+        // Enhance Firebase user with any locally stored metadata (e.g. custom displayName, admin flag)
+        const storedUserRaw = localStorage.getItem('user');
+        let isAdmin = false;
+        let displayName = authUser.displayName;
+
+        if (storedUserRaw) {
+          try {
+            const storedUser = JSON.parse(storedUserRaw);
+            isAdmin = !!storedUser.isAdmin;
+            // Prefer the name we explicitly stored during signup/login (if present)
+            if (storedUser.displayName) {
+              displayName = storedUser.displayName;
+            }
+          } catch (e) {
+            console.error('Failed to parse stored user from localStorage:', e);
+          }
+        }
+
+        setUser({ ...authUser, isAdmin, displayName });
       } else {
         // Check if admin user is in localStorage
         const storedUser = localStorage.getItem('user');
