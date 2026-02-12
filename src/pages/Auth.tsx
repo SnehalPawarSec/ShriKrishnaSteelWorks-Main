@@ -84,6 +84,10 @@ const Auth = () => {
 
   /* ================= SUCCESS HANDLER ================= */
   const handleLoginSuccess = (user: any, name?: string | null) => {
+    // Check if it's admin
+    const ADMIN_EMAIL = '123soham4049@sjcem.edu.in';
+    const isAdmin = user.email === ADMIN_EMAIL;
+
     localStorage.setItem(
       'user',
       JSON.stringify({
@@ -91,6 +95,7 @@ const Auth = () => {
         displayName: name,
         email: user.email,
         photoURL: user.photoURL || null,
+        isAdmin: isAdmin,
       })
     );
 
@@ -99,7 +104,7 @@ const Auth = () => {
 
     toast({
       title: 'Login Successful!',
-      description: 'Welcome to Shri Krishna Steel Works!',
+      description: isAdmin ? 'Welcome to Admin Panel!' : 'Welcome to Shri Krishna Steel Works!',
     });
   };
 
@@ -163,6 +168,33 @@ const Auth = () => {
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Check for admin credentials
+    const ADMIN_EMAIL = '123soham4049@sjcem.edu.in';
+    const ADMIN_PASSWORD = '123456789';
+
+    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      // Admin login - create a fake auth object
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          uid: 'admin-soham',
+          displayName: 'soham',
+          email: ADMIN_EMAIL,
+          photoURL: null,
+          isAdmin: true,
+        })
+      );
+
+      setLoading(false);
+      setShowSuccessModal(true);
+      toast({
+        title: 'Admin Login Successful!',
+        description: 'Welcome to Admin Panel!',
+      });
+      return;
+    }
+
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password);
       if (!cred.user.emailVerified) {
@@ -249,10 +281,26 @@ const Auth = () => {
         <DialogContent>
           <DialogHeader className="text-center">
             <DialogTitle className="text-green-600 text-2xl">Login Successful</DialogTitle>
-            <DialogDescription>Welcome to Shri Krishna Steel Works</DialogDescription>
+            <DialogDescription>
+              {(() => {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                return user.isAdmin ? 'Welcome to Admin Panel' : 'Welcome to Shri Krishna Steel Works';
+              })()}
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button className="w-full" onClick={() => navigate('/')}>Go to Home</Button>
+            <Button 
+              className="w-full" 
+              onClick={() => {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                navigate(user.isAdmin ? '/admin' : '/');
+              }}
+            >
+              {(() => {
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                return user.isAdmin ? 'Go to Admin Dashboard' : 'Go to Home';
+              })()}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

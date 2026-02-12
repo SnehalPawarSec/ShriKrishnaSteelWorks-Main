@@ -8,18 +8,11 @@ import ProductCard from '@/components/ProductCard';
 import { ArrowRight, ShieldCheck, Users, Award, MoveRight, CheckCircle2 } from 'lucide-react';
 import ChatBot from '@/components/ChatBot';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
-  const [user, setUser] = useState<any>(null);
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
-
-  // Fetch logged-in user from localStorage
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
 
   const featuredProducts = [
     {
@@ -70,7 +63,7 @@ const Index = () => {
 
       {/* ================= WELCOME / PROCEED ================= */}
       <AnimatePresence>
-        {user && (
+        {user && !loading && (
           <section className="max-w-4xl mx-auto px-4 -mt-32 relative z-30">
             <motion.div 
               initial={{ opacity: 0, y: 40, scale: 0.95 }}
@@ -83,7 +76,7 @@ const Index = () => {
                 <span className="text-xs font-bold uppercase tracking-wider text-primary">Secure Session Active</span>
               </div>
               <h2 className="text-4xl md:text-5xl font-black mb-4 tracking-tight text-slate-900">
-                Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">{user.displayName}</span>
+                Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">{user.displayName || user.email}</span>
               </h2>
               <p className="text-slate-500 text-lg mb-10 max-w-lg mx-auto leading-relaxed">
                 Your fabrication dashboard is ready. Access your saved addresses and track your ongoing steel works.

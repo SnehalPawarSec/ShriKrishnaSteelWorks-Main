@@ -6,22 +6,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { MapPin, Calendar, Building, CheckCircle, ArrowUpRight, TrendingUp, X } from 'lucide-react';
+import Layout from '@/components/Layout';
+import { useAuth } from '@/contexts/AuthContext';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const Projects = () => {
+  const { user } = useAuth();
   const [selectedProject, setSelectedProject] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
-  }, []);
 
   const ongoingProjects = [
     {
@@ -126,10 +121,10 @@ const Projects = () => {
     }
   ];
 
-  const orderedOngoingProjects = currentUser
+  const orderedOngoingProjects = user
     ? [
-        ...ongoingProjects.filter((p) => p.client === currentUser.displayName || p.client === currentUser.email),
-        ...ongoingProjects.filter((p) => p.client !== currentUser.displayName && p.client !== currentUser.email),
+        ...ongoingProjects.filter((p) => p.client === user.displayName || p.client === user.email),
+        ...ongoingProjects.filter((p) => p.client !== user.displayName && p.client !== user.email),
       ]
     : ongoingProjects;
 
@@ -307,62 +302,8 @@ const Projects = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm">
-        <div className="container mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
-                <Building className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900">SteelWorks</h1>
-                <p className="text-xs text-slate-500">Infrastructure Solutions</p>
-              </div>
-            </div>
-
-            {/* Navigation Links */}
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="/" className="text-slate-600 hover:text-blue-600 font-medium transition-colors">
-                Home
-              </a>
-              <a href="/projects" className="text-blue-600 font-medium border-b-2 border-blue-600 pb-1">
-                Projects
-              </a>
-              <a href="/services" className="text-slate-600 hover:text-blue-600 font-medium transition-colors">
-                Services
-              </a>
-              <a href="/about" className="text-slate-600 hover:text-blue-600 font-medium transition-colors">
-                About
-              </a>
-              <a href="/contact" className="text-slate-600 hover:text-blue-600 font-medium transition-colors">
-                Contact
-              </a>
-            </div>
-
-            {/* User Profile */}
-            <div className="flex items-center space-x-4">
-              {currentUser ? (
-                <div className="flex items-center space-x-3">
-                  <div className="text-right hidden sm:block">
-                    <p className="text-sm font-semibold text-slate-900">{currentUser.displayName}</p>
-                    <p className="text-xs text-slate-500">{currentUser.email}</p>
-                  </div>
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                    {currentUser.displayName?.charAt(0).toUpperCase() || 'U'}
-                  </div>
-                </div>
-              ) : (
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  Sign In
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+    <Layout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100">
 
       {/* Hero Section */}
       <div className="relative bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 text-white py-24 overflow-hidden">
@@ -855,7 +796,8 @@ const Projects = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </Layout>
   );
 };
 

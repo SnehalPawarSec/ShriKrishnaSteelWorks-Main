@@ -72,11 +72,18 @@ const Products = () => {
 
   return (
     <Layout>
-      <section className="hero-gradient py-20 text-center">
-        <Badge className="mb-4">Our Products</Badge>
-        <h1 className="text-4xl md:text-5xl font-bold">
-          Premium Steel Products
-        </h1>
+      <section className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 py-16 text-center text-white">
+        <div className="max-w-3xl mx-auto px-4">
+          <Badge className="mb-4 bg-blue-500/20 text-blue-200 border-blue-400/30 px-4 py-2 text-sm font-medium">
+            Our Products
+          </Badge>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
+            Premium Steel Fabrication Works
+          </h1>
+          <p className="text-lg text-blue-200">
+            Innovative solutions for construction, infrastructure, and industrial projects.
+          </p>
+        </div>
       </section>
 
       <section className="py-12 bg-steel">

@@ -1,20 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, Search, Phone, LogOut, ShoppingCart } from 'lucide-react';
+import { Menu, X, Search, Phone, LogOut, ShoppingCart, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCart } from '@/contexts/CartContext';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { getCartItemCount } = useCart();
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsUserDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleLogout = async () => {
     try {
       await logout();
+      setIsUserDropdownOpen(false);
       navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
@@ -103,26 +118,49 @@ const Navbar = () => {
 
             {/* 🔥 AUTH SECTION */}
             {user ? (
-              <div className="flex items-center gap-3">
-                
-                {/* 👤 USER INITIAL CIRCLE */}
+              <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={() => navigate('/profile')}
-                  className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-sm hover:opacity-90 transition"
-                  title="View Profile"
+                  onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-secondary transition-colors"
                 >
-                  {userInitial}
+                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-sm">
+                    {userInitial}
+                  </div>
+                  <ChevronDown className="h-4 w-4" />
                 </button>
 
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleLogout}
-                  className="flex items-center gap-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Logout
-                </Button>
+                {/* Dropdown Menu */}
+                {isUserDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                    {/* User Info */}
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <p className="font-semibold text-sm text-gray-900">
+                        {user.displayName || user.email}
+                      </p>
+                      <p className="text-xs text-gray-500">{user.email}</p>
+                    </div>
+
+                    {/* Menu Items */}
+                    <button
+                      onClick={() => {
+                        navigate(user.isAdmin ? '/admin' : '/profile');
+                        setIsUserDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm text-gray-800 font-medium hover:bg-blue-50 flex items-center gap-2 transition-colors"
+                    >
+                      <LayoutDashboard className="h-4 w-4 text-primary" />
+                      {user.isAdmin ? 'Go to Dashboard' : 'Go to Profile'}
+                    </button>
+
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-3 text-sm text-red-600 font-medium hover:bg-red-50 flex items-center gap-2 border-t border-gray-200 transition-colors"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <Button
@@ -168,17 +206,21 @@ const Navbar = () => {
             <div className="pt-3 border-t border-border space-y-2">
               {user ? (
                 <>
+                  <div className="px-3 py-2 border-b border-gray-200">
+                    <p className="font-semibold text-sm text-gray-900">
+                      {user.displayName || user.email}
+                    </p>
+                  </div>
+
                   <button
                     onClick={() => {
                       setIsMenuOpen(false);
-                      navigate('/profile');
+                      navigate(user.isAdmin ? '/admin' : '/profile');
                     }}
-                    className="w-full flex items-center justify-center gap-2 text-sm font-medium"
+                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                   >
-                    <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-semibold">
-                      {userInitial}
-                    </div>
-                    Profile
+                    <LayoutDashboard className="h-4 w-4" />
+                    {user.isAdmin ? 'Go to Dashboard' : 'Go to Profile'}
                   </button>
 
                   <Button
@@ -200,6 +242,7 @@ const Navbar = () => {
                   Login
                 </Button>
               )}
+
             </div>
           </div>
         </div>
